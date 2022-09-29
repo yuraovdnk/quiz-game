@@ -1,4 +1,4 @@
-import { ActiveGameType, answerStatuses, NumberPlayer } from '../types/game-types';
+import { ActiveGameType, statusAnswer, NumberPlayer, statusGame } from '../types/game-types';
 import { ForbiddenException } from '@nestjs/common';
 
 export class QuizGame {
@@ -26,7 +26,7 @@ export class QuizGame {
     );
 
     const answerStatus =
-      this.answer === answerQuestion.answer ? answerStatuses.Correct : answerStatuses.Incorrect;
+      this.answer === answerQuestion.answer.toString() ? statusAnswer.Correct : statusAnswer.Incorrect;
 
     const objAnswer = {
       questionId: currentQuestion._id,
@@ -36,10 +36,13 @@ export class QuizGame {
 
     this.game[this.numberPlayer].answers.push(objAnswer);
 
-    const statusGame = this.checkIsFinishGame(this.game.firstPlayer, this.game.secondPlayer);
-    if (!statusGame) {
+    const isFinishGame = this.checkIsFinishGame(this.game.firstPlayer, this.game.secondPlayer);
+    if (!isFinishGame) {
+      const scoresPlayers = this.countScores(this.game.firstPlayer.answers, this.game.secondPlayer.answers);
+      this.game.firstPlayer.score = scoresPlayers.countScoresFirstPlayer;
+      this.game.secondPlayer.score = scoresPlayers.countScoresSecondPlayer;
       this.game.finishGameDate = new Date(Date.now());
-      this.game.status = 'Finished';
+      this.game.status = statusGame.Finished;
     }
   }
   private checkIsFinishGame(firstPlayer, secondPlayer) {
@@ -50,5 +53,31 @@ export class QuizGame {
       return false;
     }
     return true;
+  }
+  private countScores(firstPlayerAnswers: any, secondPlayerAnswers: any) {
+    function calcScores(playerAnswers) {
+      let scorePlayer = 0;
+      for (const item of playerAnswers) {
+        if (item.answerStatus === statusAnswer.Correct) {
+          scorePlayer += 1;
+        }
+      }
+      return scorePlayer;
+    }
+    let countScoresFirstPlayer = calcScores(firstPlayerAnswers);
+    let countScoresSecondPlayer = calcScores(secondPlayerAnswers);
+
+    const latestFPAnswer = firstPlayerAnswers.reduce((a, b) => (a.addedAt > b.addedAt ? a : b));
+    const latestSPAnswer = secondPlayerAnswers.reduce((a, b) => (a.addedAt > b.addedAt ? a : b));
+
+    if (latestFPAnswer < latestSPAnswer) {
+      countScoresFirstPlayer += 1;
+    } else {
+      countScoresSecondPlayer += 1;
+    }
+    return {
+      countScoresFirstPlayer,
+      countScoresSecondPlayer,
+    };
   }
 }

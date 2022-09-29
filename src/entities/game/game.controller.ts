@@ -4,7 +4,8 @@ import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import mongoose from 'mongoose';
 import { CommandBus } from '@nestjs/cqrs';
-import { SendAnswerCommand } from './application/use-cases/send-answer.case';
+import { SendAnswerCommand } from './application/use-cases/send-answer.handler';
+import { ConnectPlayerCommand } from './application/use-cases/connect-player.case';
 
 @Controller('pair-game-quiz')
 export class GameController {
@@ -19,8 +20,8 @@ export class GameController {
   //Вернуть текущую не законченную юзером игру
   @Get('pairs/my-current')
   @UseGuards(JwtAuthGuard)
-  async myCurrentGame(@CurrentUser() id: mongoose.Types.ObjectId) {
-    return this.gameService.myCurrentGame(id);
+  async myCurrentGame(@CurrentUser() userId: mongoose.Types.ObjectId) {
+    return this.gameService.myCurrentGame(userId);
   }
 
   //Вернуть игру по id у которой текущий юзер принимает участиие
@@ -36,15 +37,14 @@ export class GameController {
   @Post('pairs/connection')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  async connections(@CurrentUser() id: mongoose.Types.ObjectId) {
-    return this.gameService.connection(id);
+  async connections(@CurrentUser() userId: mongoose.Types.ObjectId) {
+    return this.commandBus.execute(new ConnectPlayerCommand(userId));
   }
 
   @Post('pairs/my-current/answers')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  async sendAnswer(@CurrentUser() id: mongoose.Types.ObjectId, @Body('answer') answer: string) {
-    //return this.gameService.sendAnswer(id, answer);
-    return this.commandBus.execute(new SendAnswerCommand(id, answer));
+  async sendAnswer(@CurrentUser() userId: mongoose.Types.ObjectId, @Body('answer') answer: string) {
+    return this.commandBus.execute(new SendAnswerCommand(userId, answer));
   }
 }

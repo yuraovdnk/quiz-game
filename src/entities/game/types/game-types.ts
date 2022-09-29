@@ -5,9 +5,14 @@ export enum NumberPlayer {
   secondPlayer = 'secondPlayer',
 }
 
-export enum answerStatuses {
+export enum statusAnswer {
   Correct = 'Correct',
   Incorrect = 'Incorrect',
+}
+export enum statusGame {
+  Finished = 'Finished',
+  PendingSecondPlayer = 'PendingSecondPlayer',
+  Active = 'Active',
 }
 type AnswerType = {
   questionId: mongoose.Types.ObjectId;

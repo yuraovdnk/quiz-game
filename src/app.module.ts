@@ -15,9 +15,10 @@ import { GameRepository } from './entities/game/infrastructure/game.repository';
 import { Game, GameSchema } from './entities/game/schemas/game.schema';
 import { Question, QuestionSchema } from './entities/game/schemas/question.schema';
 import { CqrsModule } from '@nestjs/cqrs';
-import { SendAnswerCase } from './entities/game/application/use-cases/send-answer.case';
+import { SendAnswerHandler } from './entities/game/application/use-cases/send-answer.handler';
+import { ConnectPlayerHandler } from './entities/game/application/use-cases/connect-player.case';
 
-const useCases = [SendAnswerCase];
+const useCases = [SendAnswerHandler, ConnectPlayerHandler];
 @Module({
   imports: [
     CqrsModule,

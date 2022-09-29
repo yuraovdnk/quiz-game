@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Game } from '../schemas/game.schema';
 import mongoose, { Model } from 'mongoose';
 import { Question } from '../schemas/question.schema';
-import { QuizGame } from './quizGame';
 import { ActiveGameType } from '../types/game-types';
 
 @Injectable()
@@ -12,36 +11,11 @@ export class GameRepository {
     @InjectModel(Game.name) protected gameModel: Model<Game>,
     @InjectModel(Question.name) protected questionModel: Model<Question>,
   ) {}
-  //test method
-  // async sendAnswer(gameFabric: QuizGame) {
-  //   const numberPlayer = gameFabric.getNumberPlayer();
-  //   return this.gameModel.updateOne(
-  //     { _id: gameFabric.game._id },
-  //     {
-  //       $set: {
-  //         [`${numberPlayer}.answers`]: gameFabric.game[numberPlayer].answers,
-  //       },
-  //     },
-  //   );
-  // }
 
   async saveAnswer(activeGame: any, gameFabric: ActiveGameType) {
     activeGame.save(gameFabric);
   }
 
-  async finishGame(gameId: mongoose.Types.ObjectId, scores) {
-    return this.gameModel.updateOne(
-      { _id: gameId },
-      {
-        $set: {
-          'firstPlayer.score': scores.countScoresFirstPlayer,
-          'secondPlayer.score': scores.countScoresSecondPlayer,
-          status: 'Finished',
-          finishGameDate: Date.now(),
-        },
-      },
-    );
-  }
   async startGame(secondPlayer, pairId: mongoose.Types.ObjectId, questions: Array<any>) {
     const res = await this.gameModel.updateOne(
       { _id: pairId },
@@ -96,7 +70,7 @@ export class GameRepository {
   async getQuestions() {
     //TODO add max size
     const count = await this.questionModel.countDocuments();
-    return this.questionModel.aggregate([{ $sample: { size: count } }, { $project: { answer: 0 } }]);
+    return this.questionModel.aggregate([{ $sample: { size: count } }]);
   }
 
   async getQuestionByString(str: string) {
