@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, ObjectId, Types } from 'mongoose';
+import { ForbiddenException } from '@nestjs/common';
+import { answerStatuses, NumberPlayer } from '../types/game-types';
 
 @Schema({ versionKey: false, _id: false })
 class UserPlayer extends Document {
@@ -60,3 +62,11 @@ export class Game extends Document {
   finishGameDate: Date;
 }
 export const GameSchema = SchemaFactory.createForClass(Game);
+
+// GameSchema.methods.sendAnswer = function (answer: string, userId: ObjectId) {
+//   const numberPlayer =
+//     this.firstPlayer.user.id.toString() === userId.toString()
+//       ? NumberPlayer.firstPlayer
+//       : NumberPlayer.secondPlayer;
+//   console.log(numberPlayer);
+// };

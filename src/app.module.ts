@@ -11,7 +11,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { GameController } from './entities/game/game.controller';
 import { GameService } from './entities/game/application/game.service';
-import { GameRepository } from './entities/game/game.repository';
+import { GameRepository } from './entities/game/infrastructure/game.repository';
 import { Game, GameSchema } from './entities/game/schemas/game.schema';
 import { Question, QuestionSchema } from './entities/game/schemas/question.schema';
 import { CqrsModule } from '@nestjs/cqrs';
