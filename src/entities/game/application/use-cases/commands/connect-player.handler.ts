@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { GameRepository } from '../../infrastructure/game.repository';
+import { GameRepository } from '../../../infrastructure/game.repository';
 import { ForbiddenException } from '@nestjs/common';
-import { UsersRepository } from '../../../auth/users.repository';
+import { UsersRepository } from '../../../../auth/users.repository';
+import { QueryGameRepository } from '../../../infrastructure/query-game.repository';
 
 export class ConnectPlayerCommand {
   constructor(public readonly userId: mongoose.Types.ObjectId) {}
@@ -10,18 +11,22 @@ export class ConnectPlayerCommand {
 
 @CommandHandler(ConnectPlayerCommand)
 export class ConnectPlayerHandler implements ICommandHandler<ConnectPlayerCommand> {
-  constructor(private gameRepository: GameRepository, private usersRepository: UsersRepository) {}
+  constructor(
+    private gameRepository: GameRepository,
+    private usersRepository: UsersRepository,
+    private queryGameRepository: QueryGameRepository,
+  ) {}
 
   async execute(command: ConnectPlayerCommand) {
     const { userId } = command;
 
-    const isParticipleUser = await this.gameRepository.getGameByUserId(userId);
+    const isParticipleUser = await this.queryGameRepository.getCurrentUserGame(userId);
     if (isParticipleUser) {
       throw new ForbiddenException();
     }
 
     const user = await this.usersRepository.findById(userId);
-    const pair = await this.gameRepository.getFreeGame();
+    const pair = await this.queryGameRepository.getFreeGame();
 
     if (!pair) {
       const infoFirstPlayer = {
@@ -36,9 +41,14 @@ export class ConnectPlayerHandler implements ICommandHandler<ConnectPlayerComman
       login: user.accountData.login,
     };
 
-    const gameQuestions = await this.gameRepository.getQuestions();
-    await this.gameRepository.startGame(infoSecondPlayer, pair._id, gameQuestions);
+    const gameQuestions = await this.queryGameRepository.getQuestions();
 
-    return this.gameRepository.getGameById(pair._id);
+    const mappedQuestions = gameQuestions.map(({ answer, ...rest }) => {
+      return rest;
+    });
+
+    await this.gameRepository.startGame(infoSecondPlayer, pair._id, mappedQuestions);
+
+    return this.queryGameRepository.getGameById(pair._id);
   }
 }

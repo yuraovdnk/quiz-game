@@ -1,37 +1,46 @@
-import { Body, Controller, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
-import { GameService } from './application/game.service';
+import { Body, Controller, Get, HttpCode, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import mongoose from 'mongoose';
-import { CommandBus } from '@nestjs/cqrs';
-import { SendAnswerCommand } from './application/use-cases/send-answer.handler';
-import { ConnectPlayerCommand } from './application/use-cases/connect-player.case';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { SendAnswerCommand } from './application/use-cases/commands/send-answer.handler';
+import { ConnectPlayerCommand } from './application/use-cases/commands/connect-player.handler';
+import { QueryGameRepository } from './infrastructure/query-game.repository';
+import { CurrentUserGameQuery } from './application/use-cases/queries/current-user-game.handler';
 
 @Controller('pair-game-quiz')
 export class GameController {
-  constructor(protected gameService: GameService, private commandBus: CommandBus) {}
+  constructor(
+    private commandBus: CommandBus,
+    private queryBus: QueryBus,
+    private queryGameRepository: QueryGameRepository,
+  ) {}
 
+  //All my games (closed and currents)
   @Get('pairs/my')
   @UseGuards(JwtAuthGuard)
   async myGames(@CurrentUser() id: mongoose.Types.ObjectId) {
-    return this.gameService.myGames(id);
+    //TODO pagination
+    return this.queryGameRepository.getMyGames(id);
   }
 
-  //Вернуть текущую не законченную юзером игру
+  //Current unfinished user game
   @Get('pairs/my-current')
   @UseGuards(JwtAuthGuard)
   async myCurrentGame(@CurrentUser() userId: mongoose.Types.ObjectId) {
-    return this.gameService.myCurrentGame(userId);
+    const res = await this.queryGameRepository.getCurrentUserGame(userId);
+    if (!res) throw new NotFoundException();
+    return res;
   }
 
-  //Вернуть игру по id у которой текущий юзер принимает участиие
+  //Game in which current user took part
   @Get('pairs/:id')
   @UseGuards(JwtAuthGuard)
   async myGameById(
     @CurrentUser() userId: mongoose.Types.ObjectId,
     @Param('id') gameId: mongoose.Types.ObjectId,
   ) {
-    return this.gameService.myGameById(userId, gameId);
+    return this.queryBus.execute(new CurrentUserGameQuery(userId, gameId));
   }
 
   @Post('pairs/connection')

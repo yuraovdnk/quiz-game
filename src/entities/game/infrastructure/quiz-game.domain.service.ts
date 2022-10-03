@@ -1,9 +1,10 @@
-import { ActiveGameType, statusAnswer, NumberPlayer, statusGame } from '../types/game-types';
+import { GameTypeDB } from '../types/game-types';
 import { ForbiddenException } from '@nestjs/common';
+import { NumberPlayer, statusAnswer, statusGame } from '../types/game-enums';
 
 export class QuizGame {
   private numberPlayer;
-  constructor(public game: ActiveGameType, private userId, private gameQuestions, private answer: string) {
+  constructor(public game: GameTypeDB, private userId, private gameQuestions, private answer: string) {
     this.numberPlayer =
       this.game.firstPlayer.user.id.toString() === userId.toString()
         ? NumberPlayer.firstPlayer
@@ -24,6 +25,7 @@ export class QuizGame {
     const answerQuestion = this.gameQuestions.find(
       (item) => currentQuestion._id.toString() === item._id.toString(),
     );
+    console.log(answerQuestion, 'gfdgfd');
 
     const answerStatus =
       this.answer === answerQuestion.answer.toString() ? statusAnswer.Correct : statusAnswer.Incorrect;

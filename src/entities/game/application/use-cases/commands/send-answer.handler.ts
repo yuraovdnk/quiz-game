@@ -1,9 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import mongoose from 'mongoose';
 import { ForbiddenException } from '@nestjs/common';
-import { statusAnswer } from '../../types/game-types';
-import { GameRepository } from '../../infrastructure/game.repository';
-import { QuizGame } from '../../infrastructure/quizGame';
+import { GameRepository } from '../../../infrastructure/game.repository';
+import { QuizGame } from '../../../infrastructure/quiz-game.domain.service';
+import { QueryGameRepository } from '../../../infrastructure/query-game.repository';
 
 export class SendAnswerCommand {
   constructor(public readonly userId: mongoose.Types.ObjectId, public readonly answer: string) {}
@@ -11,21 +11,19 @@ export class SendAnswerCommand {
 
 @CommandHandler(SendAnswerCommand)
 export class SendAnswerHandler implements ICommandHandler<SendAnswerCommand> {
-  constructor(protected gameRepository: GameRepository) {}
+  constructor(protected gameRepository: GameRepository, private queryGameRepository: QueryGameRepository) {}
   async execute(command: SendAnswerCommand) {
     const { userId, answer } = command;
-    const activeGame: any = await this.gameRepository.getGameByUserId(userId);
+    const activeGame: any = await this.queryGameRepository.getCurrentUserGame(userId);
     if (!activeGame) {
       throw new ForbiddenException();
     }
 
-    const gameQuestions = await this.gameRepository.getQuestions();
+    const gameQuestions = await this.queryGameRepository.getQuestions();
     const quizGame = new QuizGame(activeGame, userId, gameQuestions, answer);
 
     quizGame.sendAnswer();
 
-    await this.gameRepository.saveAnswer(activeGame, quizGame.getQuizGame);
-
-    return activeGame;
+    return await this.gameRepository.saveAnswer(activeGame, quizGame.getQuizGame);
   }
 }
