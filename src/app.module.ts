@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthController } from './entities/auth/auth.controller';
-import { AuthService } from './entities/auth/auth.service';
+import { AuthService, RegistrationConfirmationService } from './entities/auth/auth.service';
 import { UsersRepository } from './entities/auth/users.repository';
 import { User, UserSchema } from './entities/auth/schemas/user.schema';
 import { LocalStrategy } from './entities/auth/strategies/local-strategy';
@@ -24,9 +24,11 @@ const useCases = [SendAnswerHandler, ConnectPlayerHandler, CurrentUserGameHandle
   imports: [
     CqrsModule,
     MongooseModule.forRoot('mongodb://localhost:27017/youtube'),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    MongooseModule.forFeature([{ name: Game.name, schema: GameSchema }]),
-    MongooseModule.forFeature([{ name: Question.name, schema: QuestionSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Question.name, schema: QuestionSchema },
+      { name: Game.name, schema: GameSchema },
+    ]),
     PassportModule,
     JwtModule.register({}),
   ],
@@ -36,6 +38,7 @@ const useCases = [SendAnswerHandler, ConnectPlayerHandler, CurrentUserGameHandle
     UsersRepository,
     QueryGameRepository,
     GameService,
+    RegistrationConfirmationService,
     GameRepository,
     LocalStrategy,
     JwtStrategy,

@@ -22,10 +22,10 @@ export class QuizGame {
     if (!currentQuestion) {
       throw new ForbiddenException();
     }
+
     const answerQuestion = this.gameQuestions.find(
       (item) => currentQuestion._id.toString() === item._id.toString(),
     );
-    console.log(answerQuestion, 'gfdgfd');
 
     const answerStatus =
       this.answer === answerQuestion.answer.toString() ? statusAnswer.Correct : statusAnswer.Incorrect;

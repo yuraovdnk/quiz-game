@@ -47,7 +47,7 @@ export class Game extends Document {
   @Prop({ type: String, default: 'PendingSecondPlayer' })
   status: string;
 
-  @Prop({ type: Array })
+  @Prop({ type: Array, default: [] })
   questions: Array<any>;
 
   @Prop({ type: Date, default: Date.now() })

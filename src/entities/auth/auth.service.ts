@@ -8,8 +8,19 @@ import { add } from 'date-fns';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
+export class RegistrationConfirmationService {
+  getConfirmationStatusForNewUser() {
+    return false;
+  }
+}
+
+@Injectable()
 export class AuthService {
-  constructor(protected usersRepository: UsersRepository, protected jwtService: JwtService) {}
+  constructor(
+    protected usersRepository: UsersRepository,
+    protected jwtService: JwtService,
+    protected registrationConfirmationService: RegistrationConfirmationService,
+  ) {}
   async registration(registrationDto: RegisterDto) {
     const passwordHash = await this.generateHash(registrationDto.password);
     const newUser = {
@@ -24,13 +35,14 @@ export class AuthService {
         expirationDate: add(new Date(), {
           hours: 1,
         }),
-        isConfirmed: true,
+        isConfirmed: this.registrationConfirmationService.getConfirmationStatusForNewUser(),
       },
     };
     return await this.usersRepository.registration(newUser);
   }
   async login(id: mongoose.Types.ObjectId) {
-    return this.jwtService.sign({ userId: id }, { secret: '12345', expiresIn: '1d' });
+    const jwt = this.jwtService.sign({ userId: id }, { secret: '12345', expiresIn: '1d' });
+    return { accessToken: jwt };
   }
 
   async validateUser(login: string, password: string) {

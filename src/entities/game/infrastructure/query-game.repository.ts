@@ -39,7 +39,7 @@ export class QueryGameRepository implements IQueryGameRepository {
     });
   }
 
-  async getGameById(id: mongoose.Types.ObjectId): Promise<GameTypeDB | CreatedGameTypeDB> {
+  async getGameById(id: mongoose.Types.ObjectId): Promise<Game> {
     return this.gameModel.findOne({ _id: id });
   }
 
@@ -47,5 +47,8 @@ export class QueryGameRepository implements IQueryGameRepository {
     //TODO add max size
     const count = await this.questionModel.countDocuments();
     return this.questionModel.aggregate([{ $sample: { size: count } }]);
+  }
+  async clearDb() {
+    return this.gameModel.deleteMany();
   }
 }

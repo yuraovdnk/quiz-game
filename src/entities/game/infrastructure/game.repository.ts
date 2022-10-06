@@ -31,7 +31,9 @@ export class GameRepository {
     return res.matchedCount === 1;
   }
 
-  createGame(firstPlayer: PlayerType) {
-    return this.gameModel.create({ firstPlayer: { user: firstPlayer } });
+  async createGame(firstPlayer: PlayerType) {
+    return this.gameModel.create({
+      firstPlayer: { user: firstPlayer },
+    });
   }
 }

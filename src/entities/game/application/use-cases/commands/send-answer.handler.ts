@@ -14,6 +14,7 @@ export class SendAnswerHandler implements ICommandHandler<SendAnswerCommand> {
   constructor(protected gameRepository: GameRepository, private queryGameRepository: QueryGameRepository) {}
   async execute(command: SendAnswerCommand) {
     const { userId, answer } = command;
+
     const activeGame: any = await this.queryGameRepository.getCurrentUserGame(userId);
     if (!activeGame) {
       throw new ForbiddenException();

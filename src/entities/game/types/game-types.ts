@@ -15,7 +15,7 @@ export type QuestionType = {
 export type GameTypeDB = {
   _id: mongoose.Types.ObjectId;
   firstPlayer: PlayerTypeDB;
-  secondPlayer: PlayerTypeDB;
+  secondPlayer: PlayerTypeDB | null;
   status: string;
   pairCreatedDate: Date;
   startGameDate: Date;
@@ -32,6 +32,7 @@ export type CreatedGameTypeDB = {
   startGameDate: null;
   finishGameDate: null;
 };
+
 export type PlayerTypeDB = {
   user: {
     id: mongoose.Types.ObjectId;
